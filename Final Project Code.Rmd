@@ -1,0 +1,93 @@
+---
+title: "Final project Code"
+author: "Samuel Brown, Jay Chadha, Brett Carey"
+date: "2022-12-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(shiny)
+library(plotly)
+songs <- read.csv("C:/Users/brown/Documents/Stats stuff/DS 2003/beatles_spotify.csv") 
+```
+
+
+```{r}
+### Question 1: Visualize duration vs energy. Widgets can choose the two categories, change loess line, filter by album. 
+songs
+
+songs %>%
+  filter(album %in% c("Let It Be (Remastered)", "The Beatles")) %>%
+  ggplot(aes(x = danceability, y = popularity)) +
+  geom_point() +
+  theme_bw()
+```
+
+```{r}
+### Question 2: Boxplot popularity and album. Widgets make you pick a couple of albums, pick variable you want to compare, also filter by a variable. 
+ggplot(songs, aes(x = album, y = popularity)) +
+  geom_boxplot()
+```
+
+```{r}
+# Make shiny app
+shinyApp(
+  ui = fluidPage(
+    # This allows the user to check any album on Spotify
+    checkboxGroupInput("checkGroup", label = h3("Album"), 
+      choices = list("Revolver (Super Deluxe)" = "Revolver (Super Deluxe)", 
+                     "Get Back (Rooftop Performance)" = "Get Back (Rooftop Performance)", 
+                     "Let It Be (Super Deluxe)" = "Let It Be (Super Deluxe)",
+                     "Abbey Road (Super Deluxe Edition)" = "Abbey Road (Super Deluxe Edition)",
+                     "The Beatles" = "The Beatles",
+                     "Live At The Hollywood Bowl" = "Live At The Hollywood Bowl",
+                     "Let It Be... Naked (Remastered)" = "Let It Be... Naked (Remastered)",
+                     "Yellow Submarine Songtrack" = "Yellow Submarine Songtrack",
+                     "On Air - Live At The BBC (Vol.2)" = "On Air - Live At The BBC (Vol.2)",
+                     "1 (Remastered)" = "1 (Remastered)",
+                     "Live At The BBC (Remastered)" = "Live At The BBC (Remastered)",
+                     "Let It Be (Remastered)" = "Let It Be (Remastered)",
+                     "Abbey Road (Remastered)" = "Abbey Road (Remastered)",
+                     "Yellow Submarine (Remastered)" = "Yellow Submarine (Remastered)",
+                     "The Beatles (Remastered)" = "The Beatles (Remastered)",
+                     "Magical Mystery Tour (Remastered)" = "Magical Mystery Tour (Remastered)",
+                     "Sgt. Pepper's Lonely Hearts Club Band (Deluxe Edition)" = "Sgt. Pepper's Lonely Hearts Club Band (Deluxe Edition)",
+                     "Sgt. Pepper's Lonely Hearts Club Band (Remastered)" = "Sgt. Pepper's Lonely Hearts Club Band (Remastered)",
+                     "Sgt. Pepper's Lonely Hearts Club Band (Super Deluxe Edition)" = "Sgt. Pepper's Lonely Hearts Club Band (Super Deluxe Edition)",
+                     "Revolver (Remastered)" = "Revolver (Remastered)",
+                     "Rubber Soul (Remastered)" = "Rubber Soul (Remastered)",
+                     "Help! (Remastered)" = "Help! (Remastered)",
+                     "Beatles For Sale (Remastered)" = "Beatles For Sale (Remastered)",
+                     "A Hard Day's Night (Remastered)" = "A Hard Day's Night (Remastered)",
+                     "With The Beatles (Remastered)" = "With The Beatles (Remastered)",
+                     "Please Please Me (Remastered)" = "Please Please Me (Remastered)"), 
+      selected = "Abbey Road (Super Deluxe Edition)"),
+    plotlyOutput("scatter"),
+    
+    
+    hr(),
+    fluidRow(column(3, verbatimTextOutput("value")))
+    
+  ),
+  
+  server = function(input, output){
+    # Put in the reactive scatterplot
+    output$scatter <- renderPlotly({
+      ggplotly(
+        songs %>%
+        filter(album %in% input$checkGroup) %>%
+        ggplot(aes(x = danceability, y = popularity, label = name)) +
+        geom_point() +
+        theme_bw() +
+        ylim(0, 100) +
+        xlim(0, 1) +
+          geom_smooth(se = F, method = "loess", formula = y ~ x))
+        
+    })
+  }
+  
+)
+```
+
