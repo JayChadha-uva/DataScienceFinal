@@ -2,7 +2,7 @@
 title: "Final project Code"
 author: "Samuel Brown, Jay Chadha, Brett Carey"
 date: "2022-12-11"
-output: html_document
+runtime: shiny 
 ---
 
 ```{r setup, include=FALSE}
@@ -10,24 +10,15 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(shiny)
 library(plotly)
+library(stringr)
 #songs <- read.csv("C:/Users/brown/Documents/Stats stuff/DS 2003/beatles_spotify.csv") 
 songs<- read.csv("beatles_spotify.csv")
 ```
 
 
 ```{r}
-### Question 1: Visualize duration vs energy. Widgets can choose the two categories, change loess line, filter by album. 
-songs
-
-songs %>%
-  filter(album %in% c("Let It Be (Remastered)", "The Beatles")) %>%
-  ggplot(aes(x = danceability, y = popularity)) +
-  geom_point() +
-  theme_bw()
-```
-
-```{r}
 ### Question 2: Boxplot popularity and album. Widgets make you pick a couple of albums, pick variable you want to compare, also filter by a variable. 
+
 
 shinyApp(
   ui = fluidPage(
@@ -81,18 +72,18 @@ shinyApp(
   
   server = function(input, output){
     # Put in the reactive scatterplot
+    
     output$scatter <- renderPlotly({
       ggplotly(
         songs %>%
         filter(album %in% input$checkGroup) %>%
         ggplot(aes(x = album, y = popularity, fill=album)) +
         geom_boxplot()+
-        theme_bw() +
-        theme(legend.position='none')
+        theme(legend.position='none', axis.title.x = element_blank())+
+        scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
         )
     })
-  }
-  
+  }, options = list(height = 1200)
 )
 ```
 
@@ -102,7 +93,6 @@ shinyApp(
   ui = fluidPage(
   
   titlePanel("The Beatles: Popularity vs Danceability Based on Album"),
-    
     
   sidebarLayout(
   sidebarPanel(
@@ -142,7 +132,6 @@ shinyApp(
     
     plotlyOutput("scatter"),
     
-    
     hr(),
     fluidRow(column(3, verbatimTextOutput("value")))
     )
@@ -155,7 +144,7 @@ shinyApp(
       ggplotly(
         songs %>%
         filter(album %in% input$checkGroup) %>%
-        ggplot(aes(x = danceability, y = popularity, label = name, fill=album)) +
+        ggplot(aes(x = danceability, y = popularity, label = name)) +
         geom_point() +
         theme_bw() +
         theme(legend.position='none')+
@@ -164,7 +153,7 @@ shinyApp(
           geom_smooth(se = F, method = "loess", formula = y ~ x))
         
     })
-  }
+  }, options = list(height = 1200)
   
 )
 ```
