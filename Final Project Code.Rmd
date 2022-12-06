@@ -18,13 +18,6 @@ songs<- read.csv("beatles_spotify.csv")
 
 ```{r}
 ### Question 1: Visualize duration vs energy. Widgets can choose the two categories, change loess line, filter by album. 
-songs
-
-songs %>%
-  filter(album %in% c("Let It Be (Remastered)", "The Beatles")) %>%
-  ggplot(aes(x = danceability, y = popularity)) +
-  geom_point() +
-  theme_bw()
 ```
 
 ```{r}
@@ -74,13 +67,13 @@ shinyApp(
       ggplotly(
         songs %>%
         filter(album %in% input$checkGroup) %>%
-        ggplot(aes(x = album, y = popularity, fill = album)) +
+        ggplot(aes(x = album, y = popularity, fill=album)) +
         geom_boxplot()+
-        theme_bw() +
-        theme(legend.position='none')
+        theme(legend.position='none', axis.title.x = element_blank())+
+        scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
         )
     })
-  }
+  }, options = list(height = 1200)
   
 )
 ```
@@ -150,7 +143,7 @@ shinyApp(
           geom_smooth(se = F, method = "loess", formula = y ~ x, span = input$span))
         
     })
-  }  
+  } , options = list(height = 1200)
 )
 ```
 
