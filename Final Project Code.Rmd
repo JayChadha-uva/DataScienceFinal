@@ -18,13 +18,6 @@ songs<- read.csv("beatles_spotify.csv")
 
 ```{r}
 ### Question 1: Visualize duration vs energy. Widgets can choose the two categories, change loess line, filter by album. 
-songs
-
-songs %>%
-  filter(album %in% c("Let It Be (Remastered)", "The Beatles")) %>%
-  ggplot(aes(x = danceability, y = popularity)) +
-  geom_point() +
-  theme_bw()
 ```
 
 ```{r}
