@@ -17,10 +17,6 @@ songs<- read.csv("beatles_spotify.csv")
 
 
 ```{r}
-### Question 1: Visualize duration vs energy. Widgets can choose the two categories, change loess line, filter by album. 
-```
-
-```{r}
 ### Question 2: Boxplot popularity and album. Widgets make you pick a couple of albums, pick variable you want to compare, also filter by a variable. 
 
 shinyApp(
@@ -31,25 +27,15 @@ shinyApp(
   sidebarLayout(
   sidebarPanel(
     
-    # This allows the user to check any album on Spotify
-    checkboxGroupInput("checkGroup", label = h3("The Beatles Albums"), 
-      choices = list("1" = "1 (Remastered)",
-                     "Let It Be" = "Let It Be (Remastered)",
-                     "Abbey Road" = "Abbey Road (Remastered)",
-                     "Yellow Submarine" = "Yellow Submarine (Remastered)",
-                     "The Beatles" = "The Beatles (Remastered)",
-                     "Magical Mystery Tour" = "Magical Mystery Tour (Remastered)",
-                     "Sgt. Pepper's Lonely Hearts Club Band" = "Sgt. Pepper's Lonely Hearts Club Band (Remastered)",
-                     "Revolver" = "Revolver (Remastered)",
-                     "Rubber Soul" = "Rubber Soul (Remastered)",
-                     "Help!" = "Help! (Remastered)",
-                     "Beatles For Sale" = "Beatles For Sale (Remastered)",
-                     "A Hard Day's Night" = "A Hard Day's Night (Remastered)",
-                     "With The Beatles" = "With The Beatles (Remastered)",
-                     "Please Please Me" = "Please Please Me (Remastered)"), 
-      selected = "Abbey Road (Remastered)")
-  ),
+    dateRangeInput("dates", label = h4("Date Range"), start=("1963-03-21")),
     
+    selectInput("selecty", label = h4("Choose Size Variable"), 
+    choices = list("Danceability" = "danceability", "Energy" = "energy", "Popularity" = "popularity",
+                   "Loudness" = "loudness", "Tempo" = "tempo"), 
+    selected = "danceability"),
+  
+  radioButtons("radio", label=h4("Choose a Variable"), choices = list("Popularity"="popularity","Danceability"="danceability", "Energy"="energy","Tempo"="tempo", "Acousticness"="acousticness", "Loudness"="loudness"), selected="popularity"),
+  ),
     mainPanel(
     
     plotlyOutput("boxplot"),
@@ -63,17 +49,20 @@ shinyApp(
   
   server = function(input, output){
     # Put in the reactive boxplot
+    
+    choicesList = list("1 (Remastered)","Let It Be (Remastered)","Abbey Road (Remastered)","Yellow Submarine (Remastered)","The Beatles (Remastered)","Magical Mystery Tour (Remastered)","Sgt. Pepper's Lonely Hearts Club Band (Remastered)","Revolver (Remastered)","Rubber Soul (Remastered)","Help! (Remastered)","Beatles For Sale (Remastered)","A Hard Day's Night (Remastered)","With The Beatles (Remastered)","Please Please Me (Remastered)")
+    
     output$boxplot <- renderPlotly({
       ggplotly(
         songs %>%
-        filter(album %in% input$checkGroup) %>%
-        ggplot(aes(x = album, y = popularity, fill=album)) +
-        geom_boxplot()+
-        theme(legend.position='none', axis.title.x = element_blank())+
-        scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
+        filter(album %in% choicesList) %>%
+          filter(release_date > input$dates[1] & release_date <  input$dates[2])%>%
+        ggplot(aes(x = release_date, y = !!sym(input$radio))) +
+        geom_point(aes(color = !!sym(input$selecty)))+
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), axis.title.x = element_blank())
         )
     })
-  }, options = list(height = 1200)
+  }, options = list(height = 600)
   
 )
 ```
@@ -81,27 +70,30 @@ shinyApp(
 ```{r}
 shinyApp(
   ui = fluidPage(
-  titlePanel("The Beatles: Popularity vs Danceability Based on Album"),
+  titlePanel("The Beatles: Variable X vs Variable Y Based on Album"),
   
-  # Dropdowns to select x and y
-  selectInput("selectx", label = h3("Select box"), 
-    choices = list("Danceability" = "danceability", "Energy" = "energy", "Popularity" = "popularity",
-                   "Loudness" = "loudness", "Tempo" = "tempo"), 
-    selected = "danceability"),
   
-  selectInput("selecty", label = h3("Select box"), 
-    choices = list("Danceability" = "danceability", "Energy" = "energy", "Popularity" = "popularity",
-                   "Loudness" = "loudness", "Tempo" = "tempo"), 
-    selected = "tempo"),
-  # Slider to select span of loess line
-  sliderInput("span", label = "Span:",
-              min = 0.2, max = 0.9, value = 0.5, step = 0.1),
   
   # Add in checkboxes for different albums
   sidebarLayout(
   sidebarPanel(
+    
+    # Dropdowns to select x and y
+  selectInput("selectx", label = h4("Variable X"), 
+    choices = list("Danceability" = "danceability", "Energy" = "energy", "Popularity" = "popularity",
+                   "Loudness" = "loudness", "Tempo" = "tempo"), 
+    selected = "danceability"),
+  
+  selectInput("selecty", label = h4("Variable Y"), 
+    choices = list("Danceability" = "danceability", "Energy" = "energy", "Popularity" = "popularity",
+                   "Loudness" = "loudness", "Tempo" = "tempo"), 
+    selected = "tempo"),
+  # Slider to select span of loess line
+  sliderInput("span", label = h4("Span:"),
+              min = 0.2, max = 0.9, value = 0.5, step = 0.1),
+  
     # This allows the user to check any album on Spotify
-    checkboxGroupInput("checkGroup", label = h3("The Beatles Albums"), 
+    checkboxGroupInput("checkGroup", label = h4("The Beatles Albums"), 
       choices = list("1" = "1 (Remastered)",
                      "Let It Be" = "Let It Be (Remastered)",
                      "Abbey Road" = "Abbey Road (Remastered)",
@@ -132,6 +124,7 @@ shinyApp(
   
   server = function(input, output){
     # Make in the reactive scatterplot
+  
     output$scatter <- renderPlotly({
       ggplotly(
         songs %>%
@@ -143,7 +136,7 @@ shinyApp(
           geom_smooth(se = F, method = "loess", formula = y ~ x, span = input$span))
         
     })
-  } , options = list(height = 1200)
+  } , options = list(height = 900)
 )
 ```
 
