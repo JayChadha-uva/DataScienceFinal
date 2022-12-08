@@ -1,93 +1,126 @@
 ---
-title: "Final project Code"
+title: "Analysis of The Beatles Discography"
 author: "Samuel Brown, Jay Chadha, Brett Carey"
 date: "2022-12-11"
 output: html_document
 runtime: shiny
 ---
 
+## Introduction
+
+The Beatles were an English rock band formed in 1960 and were active until 1970. By the mid 1960’s they became an international sensation. With the rise of streaming services, older bands such as The Beatles uploaded their discography to platforms such as Spotify. Their music on Spotify was then transformed into a dataset, allowing for detailed analysis of each of their songs.
+
+### Dataset and Variables
+The dataset is comprised of 17 unique variables of that 7 were used:
+
+- Album Name - Name of the Album
+- Release Date - The date in which the album was released
+- Popularity - A numeric value of the song’s popularity
+- Danceability - A numeric value of the song’s danceability
+- Energy - A numeric value of the song’s energy
+- Tempo - A numeric value of the song’s tempo
+- Loudness - A numeric value of the song’s loudness
+- Valence -  A numeric value of the song’s valence
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+# Read in libraries used
 library(tidyverse)
 library(shiny)
 library(plotly)
-#songs <- read.csv("C:/Users/brown/Documents/Stats stuff/DS 2003/beatles_spotify.csv") 
+
+# read in csv file
 songs<- read.csv("beatles_spotify.csv")
 ```
 
+## Question 1
+Are there any trends over time for different song variables in the Beatles’ discography?
 
-```{r}
-### Question 2: Boxplot popularity and album. Widgets make you pick a couple of albums, pick variable you want to compare, also filter by a variable. 
-
+```{r, echo=FALSE}
+# declare shiny app
 shinyApp(
   ui = fluidPage(
   
-  titlePanel("The Beatles: Popularity vs Album"),
-    
+  # title for shiny app
+  titlePanel("The Beatles: Time vs Variable"),
+  
+  # sidebar for input variables
   sidebarLayout(
   sidebarPanel(
     
+    # date selector for chooisng date inpu
     dateRangeInput("dates", label = h4("Date Range"), start=("1963-03-21")),
-    
-    selectInput("selecty", label = h4("Choose Size Variable"), 
-    choices = list("Danceability" = "danceability", "Energy" = "energy", "Popularity" = "popularity",
-                   "Loudness" = "loudness", "Tempo" = "tempo"), 
-    selected = "danceability"),
+
+      # select input for choosing the color variable
+    selectInput("selecty", label = h4("Choose Color Variable"), choices = list("Danceability" = "danceability", "Energy" = "energy", "Popularity" = "popularity","Loudness" = "loudness", "Tempo" = "tempo", "Valence"="valence"), selected = "danceability"),
   
-  radioButtons("radio", label=h4("Choose a Variable"), choices = list("Popularity"="popularity","Danceability"="danceability", "Energy"="energy","Tempo"="tempo", "Acousticness"="acousticness", "Loudness"="loudness"), selected="popularity"),
+    # select the variable being plotted
+  radioButtons("radio", label=h4("Choose a Variable"), choices = list("Popularity"="popularity","Danceability"="danceability", "Energy"="energy","Tempo"="tempo", "Loudness"="loudness","Valence"="valence"), selected="popularity"),
   ),
+  
     mainPanel(
-    
+    #plotly in main panel  
     plotlyOutput("boxplot"),
-    
-    
     hr(),
     fluidRow(column(3, verbatimTextOutput("value")))
     )
   )
   ),
   
+  # call the server function
   server = function(input, output){
-    # Put in the reactive boxplot
     
+    # list of album that will be used to filter from the main dataset
     choicesList = list("1 (Remastered)","Let It Be (Remastered)","Abbey Road (Remastered)","Yellow Submarine (Remastered)","The Beatles (Remastered)","Magical Mystery Tour (Remastered)","Sgt. Pepper's Lonely Hearts Club Band (Remastered)","Revolver (Remastered)","Rubber Soul (Remastered)","Help! (Remastered)","Beatles For Sale (Remastered)","A Hard Day's Night (Remastered)","With The Beatles (Remastered)","Please Please Me (Remastered)")
     
+    #output plot
     output$boxplot <- renderPlotly({
       ggplotly(
+        # take main dataset and filter by the choices list above
         songs %>%
         filter(album %in% choicesList) %>%
+          #filter again by if the release date is within the range from the input date range
           filter(release_date > input$dates[1] & release_date <  input$dates[2])%>%
-        ggplot(aes(x = release_date, y = !!sym(input$radio))) +
+          # ggplot call
+        ggplot(aes(x = release_date, y = !!sym(input$radio), label = name)) +
+          # change the point color based on the input variable to the dropdown
         geom_point(aes(color = !!sym(input$selecty)))+
+          # theme ui and formatting
+          theme_bw()+
         theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), axis.title.x = element_blank())
         )
     })
-  }, options = list(height = 600)
+  }, options = list(height = 550)
   
 )
 ```
 
-```{r}
+### Discussion 
+
+This chart allows the user to select a date range for the songs to include in the chart and two song variables to visualize how they change over time. One variable will be plotted as the y variable and the other is encoded by varying the color of the points.
+
+After selecting various variables to display over time, it does not seem that any clear trends appear in the Beatles’ discography over time. However, there are some interesting outliers over time. For one, the album Yellow Submarine, which was released in January 1969, appears to contain some of the Beatles’ least popular songs. This makes sense because this album contains the soundtrack to its namesake film, so the music is categorically different from the Beatles’
+
+
+## Question 2
+Are there any trends between different song variables in the Beatles' overall discography? 
+
+```{r, echo=FALSE}
+# call the shiny app
 shinyApp(
   ui = fluidPage(
   titlePanel("The Beatles: Variable X vs Variable Y Based on Album"),
   
-  
-  
-  # Add in checkboxes for different albums
+  # sidebar layout calls
   sidebarLayout(
   sidebarPanel(
     
-    # Dropdowns to select x and y
-  selectInput("selectx", label = h4("Variable X"), 
-    choices = list("Danceability" = "danceability", "Energy" = "energy", "Popularity" = "popularity",
-                   "Loudness" = "loudness", "Tempo" = "tempo"), 
-    selected = "danceability"),
+    # Dropdowns to select x and y variables
+  selectInput("selectx", label = h4("Variable X"), choices = list("Danceability" = "danceability", "Energy" = "energy", "Popularity" = "popularity","Loudness" = "loudness", "Tempo" = "tempo"), selected = "danceability"),
   
-  selectInput("selecty", label = h4("Variable Y"), 
-    choices = list("Danceability" = "danceability", "Energy" = "energy", "Popularity" = "popularity",
-                   "Loudness" = "loudness", "Tempo" = "tempo"), 
-    selected = "tempo"),
+  selectInput("selecty", label = h4("Variable Y"), choices = list("Danceability" = "danceability", "Energy" = "energy", "Popularity" = "popularity","Loudness" = "loudness", "Tempo" = "tempo"), selected = "tempo"),
+  
   # Slider to select span of loess line
   sliderInput("span", label = h4("Span:"),
               min = 0.2, max = 0.9, value = 0.5, step = 0.1),
@@ -109,35 +142,42 @@ shinyApp(
                      "With The Beatles" = "With The Beatles (Remastered)",
                      "Please Please Me" = "Please Please Me (Remastered)"), 
       selected = "Abbey Road (Remastered)"),
-    
-    
   ),
     
+  # call the main panel and add in the plot
     mainPanel(
     plotlyOutput("scatter"),
-    
     hr(),
     fluidRow(column(3, verbatimTextOutput("value")))
     )
   )
   ),
   
+  # call the server
   server = function(input, output){
+    
     # Make in the reactive scatterplot
-  
     output$scatter <- renderPlotly({
+      # ggplot call
       ggplotly(
+        # filter by albums selected in the checkbox area
         songs %>%
         filter(album %in% input$checkGroup) %>%
+          # plot the points based on the x and y variable selectged
         ggplot(aes(x = !! sym(input$selectx), y = !! sym(input$selecty), label = name)) +
+          # color, theme, and formatting options
         geom_point(aes(color = album)) +
         theme_bw() +
         theme(legend.position = 'none') +
           geom_smooth(se = F, method = "loess", formula = y ~ x, span = input$span))
-        
     })
   } , options = list(height = 900)
 )
 ```
 
+### Discussion
 
+This chart lets the user select two variables and any amount of albums to plot songs by, creating a loess line of a selected span to visualize the relationship between the two variables. 
+	
+When all of the Beatles songs are plotted, there doesn't seem to be a strong trend between any two variables in a particular direction except energy & loudness. While the lack of relationships seems a little bit curious at first glance, the Beatles produced enough music in enough varying styles that their songs have covered practically every combination of musical variables around. It also makes sense that energy and loudness are correlated, as people are generally louder when they get excited.  
+     
