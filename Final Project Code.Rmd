@@ -22,6 +22,9 @@ The dataset is comprised of 17 unique variables of that 7 were used:
 - Loudness - A numeric value of the song’s loudness
 - Valence -  A numeric value of the song’s valence
 
+### Purpose
+To determine if correlations or trends exist among different albums and its variables. 
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -100,7 +103,8 @@ shinyApp(
 
 This chart allows the user to select a date range for the songs to include in the chart and two song variables to visualize how they change over time. One variable will be plotted as the y variable and the other is encoded by varying the color of the points.
 
-After selecting various variables to display over time, it does not seem that any clear trends appear in the Beatles’ discography over time. However, there are some interesting outliers over time. For one, the album Yellow Submarine, which was released in January 1969, appears to contain some of the Beatles’ least popular songs. This makes sense because this album contains the soundtrack to its namesake film, so the music is categorically different from the Beatles’
+After selecting various variables to display over time, it does not seem that any clear trends appear in the Beatles’ discography over time. However, there are some interesting outliers. For one, the album Yellow Submarine, released in January 1969, appears to contain some of the Beatles’ least popular songs. This makes sense because this album contains the soundtrack to its namesake film, so the music is categorically different from their pop albums and therefore less popular. Another interesting outlier can be found by plotting the loudness over time, which reveals that the most recent album in the dataset, “1”,  has the loudest songs. “1” is a compilation album released in 2000, so improved production technology might be the reason for its songs’ higher loudness.
+
 
 
 ## Question 2
